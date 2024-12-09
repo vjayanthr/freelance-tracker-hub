@@ -12,7 +12,7 @@ export default function Timer({ projectName, clientName }: TimerProps) {
   const [time, setTime] = useState(0);
 
   useEffect(() => {
-    let interval: number;
+    let interval: NodeJS.Timeout;
     if (isRunning) {
       interval = setInterval(() => {
         setTime((prevTime) => prevTime + 1);
