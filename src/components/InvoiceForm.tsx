@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -12,25 +11,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
 import { supabase } from "@/lib/supabase";
-
-interface Project {
-  id: string;
-  name: string;
-  client: {
-    id: string;
-    name: string;
-    email: string;
-    address: string;
-  };
-}
-
-interface TimeEntry {
-  id: string;
-  start_time: string;
-  end_time: string;
-  duration: number;
-  description: string;
-}
+import type { Project, TimeEntry } from "@/types";
 
 export default function InvoiceForm({ onSuccess }: { onSuccess?: () => void }) {
   const { toast } = useToast();
@@ -44,7 +25,7 @@ export default function InvoiceForm({ onSuccess }: { onSuccess?: () => void }) {
     const fetchProjects = async () => {
       const { data, error } = await supabase
         .from("projects")
-        .select(`id, name, client:clients (id, name, email, address)`);
+        .select(`*, client:clients (*)`);
       if (!error && data) {
         setProjects(data);
       }

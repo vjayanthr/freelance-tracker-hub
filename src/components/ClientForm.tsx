@@ -4,16 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/lib/supabase";
+import type { Client } from "@/types";
 
 interface ClientFormProps {
   onSuccess?: () => void;
-  initialData?: {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
-    address: string;
-  };
+  initialData?: Client;
 }
 
 export default function ClientForm({ onSuccess, initialData }: ClientFormProps) {
@@ -48,7 +43,6 @@ export default function ClientForm({ onSuccess, initialData }: ClientFormProps) 
 
       toast({
         title: `Client ${initialData ? "updated" : "created"} successfully`,
-        variant: "success",
       });
 
       if (onSuccess) onSuccess();

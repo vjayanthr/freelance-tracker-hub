@@ -11,21 +11,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/lib/supabase";
+import type { Project, Client } from "@/types";
 
 interface ProjectFormProps {
   onSuccess?: () => void;
-  initialData?: {
-    id: string;
-    name: string;
-    description: string;
-    client_id: string;
-    rate: number;
-  };
-}
-
-interface Client {
-  id: string;
-  name: string;
+  initialData?: Omit<Project, 'client'>;
 }
 
 export default function ProjectForm({ onSuccess, initialData }: ProjectFormProps) {
@@ -41,7 +31,7 @@ export default function ProjectForm({ onSuccess, initialData }: ProjectFormProps
 
   useEffect(() => {
     const fetchClients = async () => {
-      const { data, error } = await supabase.from("clients").select("id, name");
+      const { data, error } = await supabase.from("clients").select("*");
       if (!error && data) {
         setClients(data);
       }
@@ -71,7 +61,6 @@ export default function ProjectForm({ onSuccess, initialData }: ProjectFormProps
 
       toast({
         title: `Project ${initialData ? "updated" : "created"} successfully`,
-        variant: "success",
       });
 
       if (onSuccess) onSuccess();
