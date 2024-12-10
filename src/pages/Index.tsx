@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import Timer from "@/components/Timer";
 import TimeEntriesList from "@/components/TimeEntriesList";
+import InvoiceList from "@/components/InvoiceList";
 import ClientForm from "@/components/ClientForm";
 import ProjectForm from "@/components/ProjectForm";
 import InvoiceForm from "@/components/InvoiceForm";
@@ -112,6 +113,9 @@ export default function Index() {
 
         {/* Time Entries List */}
         <TimeEntriesList />
+
+        {/* Invoices List */}
+        <InvoiceList />
       </div>
     </Layout>
   );
