@@ -14,21 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { supabase } from "@/lib/supabase";
-
-interface Client {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-}
-
-interface Project {
-  id: string;
-  name: string;
-  description: string;
-  client: Client;
-}
+import type { Client, Project } from "@/types";
 
 export default function Index() {
   const [clients, setClients] = useState<Client[]>([]);
@@ -173,48 +159,55 @@ export default function Index() {
         <div>
           <h2 className="text-xl font-semibold mb-4">Projects</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((project) => (
-              <div
-                key={project.id}
-                className="bg-white p-6 rounded-xl border shadow-sm"
-              >
-                <h3 className="font-semibold text-lg">{project.name}</h3>
-                <p className="text-sm text-muted-foreground">
-                  Client: {project.client.name}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {project.description}
-                </p>
-                <div className="mt-4 flex space-x-2">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" size="sm">
-                        Edit
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Edit Project</DialogTitle>
-                      </DialogHeader>
-                      <ProjectForm initialData={project} onSuccess={fetchData} />
-                    </DialogContent>
-                  </Dialog>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={async () => {
-                      const { error } = await supabase
-                        .from("projects")
-                        .delete()
-                        .eq("id", project.id);
-                      if (!error) fetchData();
-                    }}
-                  >
-                    Delete
-                  </Button>
+            {projects.map((project) => {
+              // Create a project object without the client property
+              const { client, ...projectWithoutClient } = project;
+              return (
+                <div
+                  key={project.id}
+                  className="bg-white p-6 rounded-xl border shadow-sm"
+                >
+                  <h3 className="font-semibold text-lg">{project.name}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Client: {project.client.name}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {project.description}
+                  </p>
+                  <div className="mt-4 flex space-x-2">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          Edit
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Edit Project</DialogTitle>
+                        </DialogHeader>
+                        <ProjectForm
+                          initialData={projectWithoutClient}
+                          onSuccess={fetchData}
+                        />
+                      </DialogContent>
+                    </Dialog>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={async () => {
+                        const { error } = await supabase
+                          .from("projects")
+                          .delete()
+                          .eq("id", project.id);
+                        if (!error) fetchData();
+                      }}
+                    >
+                      Delete
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
