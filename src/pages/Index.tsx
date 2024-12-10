@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import Timer from "@/components/Timer";
+import TimeEntriesList from "@/components/TimeEntriesList";
 import ClientForm from "@/components/ClientForm";
 import ProjectForm from "@/components/ProjectForm";
 import InvoiceForm from "@/components/InvoiceForm";
@@ -19,7 +20,6 @@ import type { Client, Project } from "@/types";
 export default function Index() {
   const [clients, setClients] = useState<Client[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
-  const [selectedProject, setSelectedProject] = useState<string | null>(null);
 
   const fetchData = async () => {
     const { data: clientsData } = await supabase.from("clients").select("*");
@@ -110,106 +110,8 @@ export default function Index() {
           </div>
         </div>
 
-        {/* Clients List */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Clients</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {clients.map((client) => (
-              <div
-                key={client.id}
-                className="bg-white p-6 rounded-xl border shadow-sm"
-              >
-                <h3 className="font-semibold text-lg">{client.name}</h3>
-                <p className="text-sm text-muted-foreground">{client.email}</p>
-                <p className="text-sm text-muted-foreground">{client.phone}</p>
-                <div className="mt-4 flex space-x-2">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" size="sm">
-                        Edit
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Edit Client</DialogTitle>
-                      </DialogHeader>
-                      <ClientForm initialData={client} onSuccess={fetchData} />
-                    </DialogContent>
-                  </Dialog>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={async () => {
-                      const { error } = await supabase
-                        .from("clients")
-                        .delete()
-                        .eq("id", client.id);
-                      if (!error) fetchData();
-                    }}
-                  >
-                    Delete
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Projects List */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Projects</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((project) => {
-              // Create a project object without the client property
-              const { client, ...projectWithoutClient } = project;
-              return (
-                <div
-                  key={project.id}
-                  className="bg-white p-6 rounded-xl border shadow-sm"
-                >
-                  <h3 className="font-semibold text-lg">{project.name}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Client: {project.client.name}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {project.description}
-                  </p>
-                  <div className="mt-4 flex space-x-2">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" size="sm">
-                          Edit
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Edit Project</DialogTitle>
-                        </DialogHeader>
-                        <ProjectForm
-                          initialData={projectWithoutClient}
-                          onSuccess={fetchData}
-                        />
-                      </DialogContent>
-                    </Dialog>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={async () => {
-                        const { error } = await supabase
-                          .from("projects")
-                          .delete()
-                          .eq("id", project.id);
-                        if (!error) fetchData();
-                      }}
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        {/* Time Entries List */}
+        <TimeEntriesList />
       </div>
     </Layout>
   );
