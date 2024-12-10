@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Clock, Users, PieChart, Shield } from "lucide-react";
+import { Clock, Users, PieChart, Shield, Check } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function Landing() {
   const features = [
@@ -26,6 +27,47 @@ export default function Landing() {
     }
   ];
 
+  const pricingPlans = [
+    {
+      name: "Free",
+      price: "$0",
+      description: "Perfect for getting started",
+      features: [
+        "Up to 3 clients",
+        "Basic time tracking",
+        "Project management",
+        "Simple reporting",
+      ]
+    },
+    {
+      name: "Pro",
+      price: "$12",
+      period: "/month",
+      description: "Best for growing freelancers",
+      features: [
+        "Unlimited clients",
+        "Advanced time tracking",
+        "Detailed analytics",
+        "Invoice generation",
+        "Priority support",
+      ],
+      popular: true
+    },
+    {
+      name: "Business",
+      price: "$29",
+      period: "/month",
+      description: "For agencies and teams",
+      features: [
+        "Everything in Pro",
+        "Team collaboration",
+        "Custom branding",
+        "API access",
+        "Dedicated support",
+      ]
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-muted">
       {/* Navigation */}
@@ -36,7 +78,7 @@ export default function Landing() {
             <Link to="/login">
               <Button variant="ghost">Login</Button>
             </Link>
-            <Link to="/signup">
+            <Link to="/register">
               <Button>Get Started</Button>
             </Link>
           </div>
@@ -53,7 +95,7 @@ export default function Landing() {
           and grow their business.
         </p>
         <div className="flex justify-center gap-4 animate-fade-up">
-          <Link to="/signup">
+          <Link to="/register">
             <Button size="lg" className="gap-2">
               Start Free Trial
             </Button>
@@ -86,6 +128,48 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section className="container mx-auto px-4 py-20">
+        <h2 className="text-3xl font-bold text-center mb-4">Simple, transparent pricing</h2>
+        <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
+          Choose the perfect plan for your freelance business. All plans include a 14-day free trial.
+        </p>
+        <div className="grid md:grid-cols-3 gap-8">
+          {pricingPlans.map((plan) => (
+            <Card key={plan.name} className={`relative ${plan.popular ? 'border-primary shadow-lg' : ''}`}>
+              {plan.popular && (
+                <div className="absolute top-0 right-0 bg-primary text-white px-4 py-1 rounded-bl-lg rounded-tr-lg text-sm font-medium">
+                  Most Popular
+                </div>
+              )}
+              <CardHeader>
+                <CardTitle>{plan.name}</CardTitle>
+                <div className="mt-4">
+                  <span className="text-4xl font-bold">{plan.price}</span>
+                  {plan.period && <span className="text-muted-foreground">{plan.period}</span>}
+                </div>
+                <p className="text-muted-foreground">{plan.description}</p>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3">
+                  {plan.features.map((feature) => (
+                    <li key={feature} className="flex items-center gap-2">
+                      <Check className="h-5 w-5 text-primary" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Link to="/register" className="block mt-6">
+                  <Button className="w-full" variant={plan.popular ? 'default' : 'outline'}>
+                    Get Started
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="container mx-auto px-4 py-20">
         <div className="bg-primary rounded-2xl p-12 text-center text-white">
@@ -93,7 +177,7 @@ export default function Landing() {
           <p className="text-lg mb-8 opacity-90">
             Join thousands of freelancers who are already saving time and growing their business.
           </p>
-          <Link to="/signup">
+          <Link to="/register">
             <Button size="lg" variant="secondary" className="gap-2">
               Start Your Free Trial
             </Button>
