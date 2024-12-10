@@ -33,9 +33,16 @@ export default function AuthForm({ mode }: AuthFormProps) {
           email,
           password,
         });
-        if (error) throw error;
-        toast.success("Successfully logged in!");
-        navigate('/dashboard');
+        if (error) {
+          if (error.message.includes('Email not confirmed')) {
+            toast.error("Please check your email and confirm your account before logging in.");
+          } else {
+            throw error;
+          }
+        } else {
+          toast.success("Successfully logged in!");
+          navigate('/dashboard');
+        }
       }
     } catch (error: any) {
       toast.error(error.message);
