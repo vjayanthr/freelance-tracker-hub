@@ -1,15 +1,26 @@
 import { useState, useEffect } from "react";
 import { Play, Pause, StopCircle } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/lib/supabase";
 
 interface TimerProps {
+  projectId: string;
   projectName: string;
   clientName: string;
+  onTimeEntryCreated?: () => void;
 }
 
-export default function Timer({ projectName, clientName }: TimerProps) {
+export default function Timer({
+  projectId,
+  projectName,
+  clientName,
+  onTimeEntryCreated,
+}: TimerProps) {
+  const { toast } = useToast();
   const [isRunning, setIsRunning] = useState(false);
   const [time, setTime] = useState(0);
+  const [startTime, setStartTime] = useState<Date | null>(null);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -30,9 +41,53 @@ export default function Timer({ projectName, clientName }: TimerProps) {
       .padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
   };
 
+  const handleStartStop = async () => {
+    if (!isRunning) {
+      // Starting timer
+      setStartTime(new Date());
+      setIsRunning(true);
+    } else {
+      // Stopping timer
+      setIsRunning(false);
+      if (startTime) {
+        try {
+          const { data: userData } = await supabase.auth.getUser();
+          if (!userData.user) throw new Error("Not authenticated");
+
+          const endTime = new Date();
+          const { error } = await supabase.from("time_entries").insert({
+            user_id: userData.user.id,
+            project_id: projectId,
+            start_time: startTime.toISOString(),
+            end_time: endTime.toISOString(),
+            duration: time,
+          });
+
+          if (error) throw error;
+
+          toast({
+            title: "Time entry saved",
+            description: `Tracked ${formatTime(time)} for ${projectName}`,
+          });
+
+          if (onTimeEntryCreated) onTimeEntryCreated();
+        } catch (error) {
+          console.error("Error saving time entry:", error);
+          toast({
+            title: "Error saving time entry",
+            description: "Please try again",
+            variant: "destructive",
+          });
+        }
+      }
+      handleReset();
+    }
+  };
+
   const handleReset = () => {
     setIsRunning(false);
     setTime(0);
+    setStartTime(null);
   };
 
   return (
@@ -44,13 +99,19 @@ export default function Timer({ projectName, clientName }: TimerProps) {
         </div>
         <div className="flex items-center space-x-2">
           <button
-            onClick={() => setIsRunning(!isRunning)}
+            onClick={handleStartStop}
             className={cn(
               "p-2 rounded-full transition-colors",
-              isRunning ? "bg-warning/10 text-warning" : "bg-success/10 text-success"
+              isRunning
+                ? "bg-warning/10 text-warning"
+                : "bg-success/10 text-success"
             )}
           >
-            {isRunning ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+            {isRunning ? (
+              <Pause className="h-5 w-5" />
+            ) : (
+              <Play className="h-5 w-5" />
+            )}
           </button>
           <button
             onClick={handleReset}
