@@ -13,6 +13,14 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Invoice {
   id: string;
@@ -30,41 +38,64 @@ interface Invoice {
 }
 
 export default function InvoiceList() {
+  const { toast } = useToast();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchInvoices = async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return;
+  const fetchInvoices = async () => {
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) return;
 
-      const { data, error } = await supabase
-        .from("invoices")
-        .select(`
-          *,
-          project:projects (
-            name,
-            client:clients (
-              name
-            )
+    const { data, error } = await supabase
+      .from("invoices")
+      .select(`
+        *,
+        project:projects (
+          name,
+          client:clients (
+            name
           )
-        `)
-        .eq("user_id", userData.user.id)
-        .order("issue_date", { ascending: false });
+        )
+      `)
+      .eq("user_id", userData.user.id)
+      .order("issue_date", { ascending: false });
 
-      if (error) {
-        console.error("Error fetching invoices:", error);
-        return;
-      }
+    if (error) {
+      console.error("Error fetching invoices:", error);
+      return;
+    }
 
-      if (data) {
-        setInvoices(data);
-      }
-      setLoading(false);
-    };
+    if (data) {
+      setInvoices(data);
+    }
+    setLoading(false);
+  };
 
+  useEffect(() => {
     fetchInvoices();
   }, []);
+
+  const updateInvoiceStatus = async (invoiceId: string, status: string) => {
+    const { error } = await supabase
+      .from("invoices")
+      .update({ status })
+      .eq("id", invoiceId);
+
+    if (error) {
+      toast({
+        title: "Error updating invoice status",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Invoice status updated successfully",
+    });
+
+    fetchInvoices();
+  };
 
   if (loading) {
     return <div>Loading invoices...</div>;
@@ -99,28 +130,32 @@ export default function InvoiceList() {
                 <TableCell>{format(new Date(invoice.due_date), "PP")}</TableCell>
                 <TableCell>${invoice.total_amount.toFixed(2)}</TableCell>
                 <TableCell>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      invoice.status === "paid"
-                        ? "bg-green-100 text-green-800"
-                        : invoice.status === "draft"
-                        ? "bg-gray-100 text-gray-800"
-                        : "bg-yellow-100 text-yellow-800"
-                    }`}
+                  <Select
+                    value={invoice.status}
+                    onValueChange={(value) => updateInvoiceStatus(invoice.id, value)}
                   >
-                    {invoice.status}
-                  </span>
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="sent">Sent</SelectItem>
+                      <SelectItem value="paid">Paid</SelectItem>
+                      <SelectItem value="overdue">Overdue</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </TableCell>
                 <TableCell>
                   <PDFDownloadLink
                     document={<InvoicePDF invoice={invoice} />}
                     fileName={`${invoice.invoice_number}.pdf`}
                   >
-                    {({ loading }) => (
+                    {({ loading: pdfLoading }) => (
                       <Button
                         variant="outline"
                         size="sm"
-                        disabled={loading}
+                        disabled={pdfLoading}
                       >
                         <Download className="h-4 w-4 mr-2" />
                         Download PDF

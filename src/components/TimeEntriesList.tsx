@@ -2,8 +2,17 @@ import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { supabase } from "@/lib/supabase";
 import type { TimeEntry } from "@/types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function TimeEntriesList() {
+  const { toast } = useToast();
   const [timeEntries, setTimeEntries] = useState<(TimeEntry & { project: { name: string; client: { name: string } } })[]>([]);
 
   const fetchTimeEntries = async () => {
@@ -39,6 +48,28 @@ export default function TimeEntriesList() {
     return `${hours}h ${minutes}m`;
   };
 
+  const updateTimeEntryStatus = async (entryId: string, status: string) => {
+    const { error } = await supabase
+      .from("time_entries")
+      .update({ status })
+      .eq("id", entryId);
+
+    if (error) {
+      toast({
+        title: "Error updating time entry status",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Time entry status updated successfully",
+    });
+
+    fetchTimeEntries();
+  };
+
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold">Time Entries</h2>
@@ -52,11 +83,25 @@ export default function TimeEntriesList() {
                   {entry.project.client.name}
                 </p>
               </div>
-              <div className="text-right">
+              <div className="text-right space-y-2">
                 <p className="font-medium">{formatDuration(entry.duration)}</p>
                 <p className="text-sm text-muted-foreground">
                   {format(new Date(entry.start_time), "MMM d, yyyy")}
                 </p>
+                <Select
+                  value={entry.status || "pending"}
+                  onValueChange={(value) => updateTimeEntryStatus(entry.id, value)}
+                >
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="approved">Approved</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
+                    <SelectItem value="invoiced">Invoiced</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
