@@ -157,9 +157,7 @@ export default function ProjectDetailsDialog({
                     </TableCell>
                     <TableCell>{entry.description}</TableCell>
                     <TableCell>
-                      {entry.invoice_id
-                        ? entry.invoice?.status
-                        : "Not Invoiced"}
+                      {entry.invoice_id ? "Invoiced" : "Not Invoiced"}
                     </TableCell>
                   </TableRow>
                 ))}
