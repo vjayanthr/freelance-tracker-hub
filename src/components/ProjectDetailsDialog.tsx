@@ -46,7 +46,7 @@ export default function ProjectDetailsDialog({
         .select(`
           *,
           project:projects (rate),
-          invoice:invoices!inner(status)
+          invoice:invoices (status)
         `)
         .eq("project_id", project.id);
 
