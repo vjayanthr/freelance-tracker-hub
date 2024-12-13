@@ -19,7 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Project, TimeEntry } from "@/types";
 
 interface ProjectDetailsDialogProps {
-  project: Project;
+  project: Project | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -39,6 +39,8 @@ export default function ProjectDetailsDialog({
 
   useEffect(() => {
     const fetchTimeEntries = async () => {
+      if (!project) return;
+      
       const { data } = await supabase
         .from("time_entries")
         .select(`*, invoice:invoices(status)`)
@@ -77,6 +79,8 @@ export default function ProjectDetailsDialog({
       fetchTimeEntries();
     }
   }, [open, project]);
+
+  if (!project) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
