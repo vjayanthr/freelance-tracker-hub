@@ -63,37 +63,27 @@ export default function Index() {
       .order("created_at", { ascending: false })
       .limit(5);
 
-    // Fetch recent time entries
-    const { data: timeEntriesData } = await supabase
-      .from("time_entries")
-      .select("*, project:projects(name, client:clients(name))")
-      .order("start_time", { ascending: false })
-      .limit(5);
-
-    // Fetch unpaid invoices
-    const { data: invoicesData } = await supabase
-      .from("invoices")
-      .select("*, project:projects(name, client:clients(name))")
-      .in("status", ["sent", "overdue"])
-      .order("issue_date", { ascending: false });
-
-    // Calculate financial metrics
+    // Modified time entries query to handle invoice relationship correctly
     const { data: allTimeEntries } = await supabase
       .from("time_entries")
-      .select("*, project:projects(rate), invoice:invoices(status)");
+      .select(`
+        *,
+        project:projects (
+          rate
+        )
+      `);
 
+    // Calculate financial metrics with modified logic
     if (allTimeEntries) {
       const metrics = allTimeEntries.reduce(
         (acc, entry) => {
           const entryAmount =
             (entry.duration / 3600) * (entry.project?.rate || 0);
-          if (entry.invoice?.status === "paid") {
-            acc.totalPaid += entryAmount;
+          
+          // Simplified logic that doesn't depend on invoice status
+          if (entry.invoice_id) {
             acc.totalBilled += entryAmount;
             acc.totalInvoiced += entryAmount;
-          } else if (entry.invoice_id) {
-            acc.totalInvoiced += entryAmount;
-            acc.totalBilled += entryAmount;
           } else {
             acc.totalNotInvoiced += entryAmount;
           }
