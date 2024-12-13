@@ -151,11 +151,11 @@ export default function InvoiceList() {
                     document={<InvoicePDF invoice={invoice} />}
                     fileName={`${invoice.invoice_number}.pdf`}
                   >
-                    {({ loading }) => (
+                    {({ loading: pdfLoading }) => (
                       <Button
                         variant="outline"
                         size="sm"
-                        disabled={loading}
+                        disabled={pdfLoading}
                       >
                         <Download className="h-4 w-4 mr-2" />
                         Download PDF

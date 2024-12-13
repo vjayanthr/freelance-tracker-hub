@@ -17,7 +17,7 @@ import {
 import type { Client, Project } from "@/types";
 
 interface ClientDetailsDialogProps {
-  client: Client;
+  client: Client | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onProjectClick?: (project: Project) => void;
@@ -33,6 +33,8 @@ export default function ClientDetailsDialog({
 
   useEffect(() => {
     const fetchProjects = async () => {
+      if (!client) return;
+      
       const { data } = await supabase
         .from("projects")
         .select("*")
@@ -47,6 +49,8 @@ export default function ClientDetailsDialog({
       fetchProjects();
     }
   }, [open, client]);
+
+  if (!client) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
