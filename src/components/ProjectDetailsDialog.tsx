@@ -41,20 +41,18 @@ export default function ProjectDetailsDialog({
     const fetchTimeEntries = async () => {
       if (!project) return;
       
-      // Fixed query to use the correct relationship with invoice_id
       const { data } = await supabase
         .from("time_entries")
         .select(`
           *,
           project:projects (rate),
-          invoice:invoices!invoice_id(status)
+          invoice:invoices!inner(status)
         `)
         .eq("project_id", project.id);
 
       if (data) {
         setTimeEntries(data);
         
-        // Calculate financial metrics
         const metrics = data.reduce(
           (acc, entry) => {
             const entryAmount = (entry.duration / 3600) * project.rate;

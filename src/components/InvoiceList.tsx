@@ -151,7 +151,7 @@ export default function InvoiceList() {
                     document={<InvoicePDF invoice={invoice} />}
                     fileName={`${invoice.invoice_number}.pdf`}
                   >
-                    {({ loading }: { loading: boolean }) => (
+                    {({ loading }) => (
                       <Button
                         variant="outline"
                         size="sm"
