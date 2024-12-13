@@ -45,8 +45,7 @@ export default function ProjectDetailsDialog({
         .from("time_entries")
         .select(`
           *,
-          project:projects (rate),
-          invoice:invoices (status)
+          project:projects (rate)
         `)
         .eq("project_id", project.id);
 
@@ -56,11 +55,7 @@ export default function ProjectDetailsDialog({
         const metrics = data.reduce(
           (acc, entry) => {
             const entryAmount = (entry.duration / 3600) * project.rate;
-            if (entry.invoice?.status === "paid") {
-              acc.totalPaid += entryAmount;
-              acc.totalBilled += entryAmount;
-              acc.totalInvoiced += entryAmount;
-            } else if (entry.invoice_id) {
+            if (entry.invoice_id) {
               acc.totalInvoiced += entryAmount;
               acc.totalBilled += entryAmount;
             } else {
