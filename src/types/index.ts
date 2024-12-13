@@ -5,6 +5,7 @@ export interface Client {
   phone: string;
   address: string;
   status?: string;
+  created_at?: string;
 }
 
 export interface Project {
@@ -15,6 +16,7 @@ export interface Project {
   rate: number;
   client: Client;
   status?: string;
+  created_at?: string;
 }
 
 export interface TimeEntry {
@@ -26,4 +28,14 @@ export interface TimeEntry {
   project_id: string;
   invoice_id: string | null;
   status?: string;
+  project?: {
+    name: string;
+    rate?: number;
+    client: {
+      name: string;
+    };
+  };
+  invoice?: {
+    status: string;
+  };
 }
