@@ -1,19 +1,33 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { supabase } from "@/lib/supabase";
-import type { TimeEntry } from "@/types";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function TimeEntriesList() {
   const { toast } = useToast();
-  const [timeEntries, setTimeEntries] = useState<(TimeEntry & { project: { name: string; client: { name: string } } })[]>([]);
+  const [timeEntries, setTimeEntries] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const fetchTimeEntries = async () => {
     const { data: userData } = await supabase.auth.getUser();
@@ -33,30 +47,32 @@ export default function TimeEntriesList() {
       .eq("user_id", userData.user.id)
       .order("start_time", { ascending: false });
 
-    if (!error && data) {
+    if (error) {
+      console.error("Error fetching time entries:", error);
+      return;
+    }
+
+    if (data) {
       setTimeEntries(data);
     }
+    setLoading(false);
   };
 
   useEffect(() => {
     fetchTimeEntries();
   }, []);
 
-  const formatDuration = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    return `${hours}h ${minutes}m`;
-  };
+  const handleDelete = async () => {
+    if (!deleteId) return;
 
-  const updateTimeEntryStatus = async (entryId: string, status: string) => {
     const { error } = await supabase
       .from("time_entries")
-      .update({ status })
-      .eq("id", entryId);
+      .delete()
+      .eq("id", deleteId);
 
     if (error) {
       toast({
-        title: "Error updating time entry status",
+        title: "Error deleting time entry",
         description: error.message,
         variant: "destructive",
       });
@@ -64,54 +80,79 @@ export default function TimeEntriesList() {
     }
 
     toast({
-      title: "Time entry status updated successfully",
+      title: "Time entry deleted successfully",
     });
 
     fetchTimeEntries();
+    setDeleteId(null);
   };
+
+  if (loading) {
+    return <div>Loading time entries...</div>;
+  }
 
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold">Time Entries</h2>
-      <div className="bg-white rounded-xl border shadow-sm divide-y">
-        {timeEntries.map((entry) => (
-          <div key={entry.id} className="p-4">
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="font-medium">{entry.project.name}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {entry.project.client.name}
-                </p>
-              </div>
-              <div className="text-right space-y-2">
-                <p className="font-medium">{formatDuration(entry.duration)}</p>
-                <p className="text-sm text-muted-foreground">
-                  {format(new Date(entry.start_time), "MMM d, yyyy")}
-                </p>
-                <Select
-                  value={entry.status || "pending"}
-                  onValueChange={(value) => updateTimeEntryStatus(entry.id, value)}
-                >
-                  <SelectTrigger className="w-32">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="approved">Approved</SelectItem>
-                    <SelectItem value="rejected">Rejected</SelectItem>
-                    <SelectItem value="invoiced">Invoiced</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-        ))}
-        {timeEntries.length === 0 && (
-          <div className="p-4 text-center text-muted-foreground">
-            No time entries yet
-          </div>
-        )}
+      <div className="bg-white rounded-lg shadow overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Project</TableHead>
+              <TableHead>Client</TableHead>
+              <TableHead>Start Time</TableHead>
+              <TableHead>Duration</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {timeEntries.map((entry) => (
+              <TableRow key={entry.id}>
+                <TableCell>{entry.project?.name}</TableCell>
+                <TableCell>{entry.project?.client?.name}</TableCell>
+                <TableCell>
+                  {format(new Date(entry.start_time), "PPp")}
+                </TableCell>
+                <TableCell>
+                  {Math.round((entry.duration / 3600) * 100) / 100} hours
+                </TableCell>
+                <TableCell>{entry.description}</TableCell>
+                <TableCell>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setDeleteId(entry.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
+
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the time
+              entry.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

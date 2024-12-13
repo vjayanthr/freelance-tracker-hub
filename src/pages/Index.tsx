@@ -63,25 +63,31 @@ export default function Index() {
       .order("created_at", { ascending: false })
       .limit(5);
 
-    // Modified time entries query to handle invoice relationship correctly
+    // Fetch all time entries with their related invoices
     const { data: allTimeEntries } = await supabase
       .from("time_entries")
       .select(`
         *,
         project:projects (
           rate
+        ),
+        invoice:invoices (
+          status
         )
       `);
 
-    // Calculate financial metrics with modified logic
+    // Calculate financial metrics
     if (allTimeEntries) {
       const metrics = allTimeEntries.reduce(
         (acc, entry) => {
           const entryAmount =
             (entry.duration / 3600) * (entry.project?.rate || 0);
           
-          // Simplified logic that doesn't depend on invoice status
-          if (entry.invoice_id) {
+          if (entry.invoice?.status === "paid") {
+            acc.totalPaid += entryAmount;
+            acc.totalBilled += entryAmount;
+            acc.totalInvoiced += entryAmount;
+          } else if (entry.invoice_id) {
             acc.totalBilled += entryAmount;
             acc.totalInvoiced += entryAmount;
           } else {

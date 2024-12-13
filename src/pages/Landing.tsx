@@ -30,41 +30,32 @@ export default function Landing() {
   const pricingPlans = [
     {
       name: "Free",
-      price: "$0",
+      price: "₹0",
       description: "Perfect for getting started",
       features: [
-        "Up to 3 clients",
-        "Basic time tracking",
-        "Project management",
-        "Simple reporting",
+        "1 client",
+        "3 projects",
+        "5 invoices",
+        "10 time entries",
+        "Basic reporting",
+        "Email support",
       ]
     },
     {
       name: "Pro",
-      price: "$12",
+      price: "₹200",
       period: "/month",
       description: "Best for growing freelancers",
       features: [
         "Unlimited clients",
-        "Advanced time tracking",
-        "Detailed analytics",
-        "Invoice generation",
+        "Unlimited projects",
+        "Unlimited invoices",
+        "Unlimited time entries",
+        "Advanced reporting",
         "Priority support",
+        "Custom branding",
       ],
       popular: true
-    },
-    {
-      name: "Business",
-      price: "$29",
-      period: "/month",
-      description: "For agencies and teams",
-      features: [
-        "Everything in Pro",
-        "Team collaboration",
-        "Custom branding",
-        "API access",
-        "Dedicated support",
-      ]
     }
   ];
 
