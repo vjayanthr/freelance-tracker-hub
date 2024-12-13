@@ -8,9 +8,10 @@ import ProjectForm from "@/components/ProjectForm";
 import InvoiceForm from "@/components/InvoiceForm";
 import ClientDetailsDialog from "@/components/ClientDetailsDialog";
 import ProjectDetailsDialog from "@/components/ProjectDetailsDialog";
+import DashboardMetrics from "@/components/DashboardMetrics";
+import UpgradeDialog from "@/components/UpgradeDialog";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -19,18 +20,19 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
-import type { Client, Project, TimeEntry } from "@/types";
-import ClientList from "@/components/ClientList";
-import ProjectList from "@/components/ProjectList";
+import { useSubscription } from "@/hooks/use-subscription";
+import type { Client, Project } from "@/types";
 
 export default function Index() {
+  const { toast } = useToast();
+  const { isAtLimit } = useSubscription();
   const [clients, setClients] = useState<Client[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [recentTimeEntries, setRecentTimeEntries] = useState<TimeEntry[]>([]);
-  const [unpaidInvoices, setUnpaidInvoices] = useState<any[]>([]);
+  const [upgradeFeature, setUpgradeFeature] = useState<"clients" | "projects" | "invoices" | "timeEntries" | null>(null);
   const [financialMetrics, setFinancialMetrics] = useState({
     totalBilled: 0,
     totalPaid: 0,
@@ -96,29 +98,51 @@ export default function Index() {
 
     if (clientsData) setClients(clientsData);
     if (projectsData) setProjects(projectsData);
-    if (timeEntriesData) setRecentTimeEntries(timeEntriesData);
-    if (invoicesData) setUnpaidInvoices(invoicesData);
   };
 
   useEffect(() => {
     fetchData();
   }, []);
 
+  const handleNewClient = () => {
+    if (isAtLimit.clients) {
+      setUpgradeFeature("clients");
+      return;
+    }
+    // Continue with creating new client
+  };
+
+  const handleNewProject = () => {
+    if (isAtLimit.projects) {
+      setUpgradeFeature("projects");
+      return;
+    }
+    // Continue with creating new project
+  };
+
+  const handleNewInvoice = () => {
+    if (isAtLimit.invoices) {
+      setUpgradeFeature("invoices");
+      return;
+    }
+    // Continue with creating new invoice
+  };
+
   return (
     <Layout>
-      <div className="space-y-8">
+      <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-semibold">Dashboard</h1>
+            <h1 className="text-2xl sm:text-3xl font-semibold">Dashboard</h1>
             <p className="text-muted-foreground mt-1">
               Manage your clients and projects
             </p>
           </div>
-          <div className="flex space-x-4">
+          <div className="flex flex-wrap gap-3">
             <Dialog>
               <DialogTrigger asChild>
-                <Button>
+                <Button onClick={handleNewClient}>
                   <Plus className="h-5 w-5 mr-2" />
                   New Client
                 </Button>
@@ -133,7 +157,7 @@ export default function Index() {
 
             <Dialog>
               <DialogTrigger asChild>
-                <Button>
+                <Button onClick={handleNewProject}>
                   <Plus className="h-5 w-5 mr-2" />
                   New Project
                 </Button>
@@ -148,7 +172,7 @@ export default function Index() {
 
             <Dialog>
               <DialogTrigger asChild>
-                <Button>
+                <Button onClick={handleNewInvoice}>
                   <Plus className="h-5 w-5 mr-2" />
                   New Invoice
                 </Button>
@@ -164,67 +188,17 @@ export default function Index() {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="clients">Clients</TabsTrigger>
-            <TabsTrigger value="projects">Projects</TabsTrigger>
-            <TabsTrigger value="time">Time Entries</TabsTrigger>
-            <TabsTrigger value="invoices">Invoices</TabsTrigger>
+          <TabsList className="w-full sm:w-auto flex flex-wrap">
+            <TabsTrigger value="overview" className="flex-1 sm:flex-none">Overview</TabsTrigger>
+            <TabsTrigger value="clients" className="flex-1 sm:flex-none">Clients</TabsTrigger>
+            <TabsTrigger value="projects" className="flex-1 sm:flex-none">Projects</TabsTrigger>
+            <TabsTrigger value="time" className="flex-1 sm:flex-none">Time</TabsTrigger>
+            <TabsTrigger value="invoices" className="flex-1 sm:flex-none">Invoices</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            {/* Financial Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Total Billed
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    ${financialMetrics.totalBilled.toFixed(2)}
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Total Paid
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    ${financialMetrics.totalPaid.toFixed(2)}
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Invoiced (Unpaid)
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    ${(financialMetrics.totalInvoiced - financialMetrics.totalPaid).toFixed(2)}
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Not Invoiced
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    ${financialMetrics.totalNotInvoiced.toFixed(2)}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
+            <DashboardMetrics financialMetrics={financialMetrics} />
+            
             {/* Recent Activity */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
@@ -266,61 +240,8 @@ export default function Index() {
                           </div>
                         </div>
                         <span className="text-muted-foreground">
-                          ${project.rate}/hr
+                          ₹{project.rate}/hr
                         </span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Recent Time Entries and Unpaid Invoices */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent Time Entries</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {recentTimeEntries.map((entry) => (
-                      <div
-                        key={entry.id}
-                        className="flex items-center justify-between p-2 hover:bg-muted rounded-lg"
-                      >
-                        <div>
-                          <div>{entry.project.name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {entry.project.client.name}
-                          </div>
-                        </div>
-                        <span>
-                          {Math.round((entry.duration / 3600) * 100) / 100} hours
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Unpaid Invoices</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {unpaidInvoices.map((invoice) => (
-                      <div
-                        key={invoice.id}
-                        className="flex items-center justify-between p-2 hover:bg-muted rounded-lg"
-                      >
-                        <div>
-                          <div>{invoice.invoice_number}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {invoice.project.client.name} - {invoice.project.name}
-                          </div>
-                        </div>
-                        <span>${invoice.total_amount.toFixed(2)}</span>
                       </div>
                     ))}
                   </div>
@@ -377,6 +298,12 @@ export default function Index() {
         project={selectedProject!}
         open={!!selectedProject}
         onOpenChange={(open) => !open && setSelectedProject(null)}
+      />
+
+      <UpgradeDialog
+        open={!!upgradeFeature}
+        onOpenChange={(open) => !open && setUpgradeFeature(null)}
+        feature={upgradeFeature!}
       />
     </Layout>
   );

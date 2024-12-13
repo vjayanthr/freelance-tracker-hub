@@ -70,12 +70,12 @@ export const InvoicePDF = ({ invoice }: { invoice: any }) => (
         </View>
         <View style={styles.tableRow}>
           <Text style={styles.tableCell}>Project Services</Text>
-          <Text style={styles.tableCell}>${invoice.total_amount.toFixed(2)}</Text>
+          <Text style={styles.tableCell}>₹{invoice.total_amount.toFixed(2)}</Text>
         </View>
       </View>
 
       <Text style={styles.total}>
-        Total Amount: ${invoice.total_amount.toFixed(2)}
+        Total Amount: ₹{invoice.total_amount.toFixed(2)}
       </Text>
     </Page>
   </Document>

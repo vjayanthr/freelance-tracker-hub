@@ -104,7 +104,7 @@ export default function InvoiceList() {
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold">Invoices</h2>
-      <div className="bg-white rounded-lg shadow">
+      <div className="bg-white rounded-lg shadow overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -128,7 +128,7 @@ export default function InvoiceList() {
                   {format(new Date(invoice.issue_date), "PP")}
                 </TableCell>
                 <TableCell>{format(new Date(invoice.due_date), "PP")}</TableCell>
-                <TableCell>${invoice.total_amount.toFixed(2)}</TableCell>
+                <TableCell>₹{invoice.total_amount.toFixed(2)}</TableCell>
                 <TableCell>
                   <Select
                     value={invoice.status}
@@ -154,6 +154,7 @@ export default function InvoiceList() {
                     <Button
                       variant="outline"
                       size="sm"
+                      className="whitespace-nowrap"
                     >
                       <Download className="h-4 w-4 mr-2" />
                       Download PDF
