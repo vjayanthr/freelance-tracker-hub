@@ -125,7 +125,7 @@ export default function Landing() {
         <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
           Choose the perfect plan for your freelance business. All plans include a 14-day free trial.
         </p>
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-8 justify-center">
           {pricingPlans.map((plan) => (
             <Card key={plan.name} className={`relative ${plan.popular ? 'border-primary shadow-lg' : ''}`}>
               {plan.popular && (

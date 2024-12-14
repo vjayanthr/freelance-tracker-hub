@@ -41,26 +41,33 @@ export default function ProjectDetailsDialog({
     const fetchTimeEntries = async () => {
       if (!project) return;
       
-      const { data } = await supabase
+      const { data: timeEntriesData } = await supabase
         .from("time_entries")
         .select(`
           *,
-          project:projects (rate)
+          project:projects (rate),
+          invoice:invoices (status)
         `)
         .eq("project_id", project.id);
 
-      if (data) {
-        setTimeEntries(data);
+      if (timeEntriesData) {
+        setTimeEntries(timeEntriesData);
         
-        const metrics = data.reduce(
+        const metrics = timeEntriesData.reduce(
           (acc, entry) => {
             const entryAmount = (entry.duration / 3600) * project.rate;
-            if (entry.invoice_id) {
-              acc.totalInvoiced += entryAmount;
+            
+            if (entry.invoice?.status === 'paid') {
+              acc.totalPaid += entryAmount;
               acc.totalBilled += entryAmount;
+              acc.totalInvoiced += entryAmount;
+            } else if (entry.invoice_id) {
+              acc.totalBilled += entryAmount;
+              acc.totalInvoiced += entryAmount;
             } else {
               acc.totalNotInvoiced += entryAmount;
             }
+            
             return acc;
           },
           { totalBilled: 0, totalPaid: 0, totalInvoiced: 0, totalNotInvoiced: 0 }

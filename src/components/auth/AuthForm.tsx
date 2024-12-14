@@ -1,90 +1,106 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Auth } from "@supabase/auth-ui-react";
+import { ThemeSupa } from "@supabase/auth-ui-shared";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from "@/lib/supabase";
-import { toast } from "sonner";
+import { useToast } from "@/components/ui/use-toast";
 
-interface AuthFormProps {
-  mode: 'login' | 'register';
-}
-
-export default function AuthForm({ mode }: AuthFormProps) {
+export default function AuthForm() {
+  const [email, setEmail] = useState("");
+  const [isResetMode, setIsResetMode] = useState(false);
+  const { toast } = useToast();
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
 
-    try {
-      if (mode === 'register') {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-        });
-        if (error) throw error;
-        toast.success("Check your email to confirm your account!");
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) {
-          if (error.message.includes('Email not confirmed')) {
-            toast.error("Please check your email and confirm your account before logging in.");
-          } else {
-            throw error;
-          }
-        } else {
-          toast.success("Successfully logged in!");
-          navigate('/dashboard');
-        }
-      }
-    } catch (error: any) {
-      toast.error(error.message);
-    } finally {
-      setLoading(false);
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    } else {
+      toast({
+        title: "Success",
+        description: "Password reset instructions have been sent to your email",
+      });
+      setIsResetMode(false);
     }
   };
 
-  return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle>{mode === 'login' ? 'Login' : 'Create an account'}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+  if (isResetMode) {
+    return (
+      <div className="space-y-6 w-full max-w-sm mx-auto">
+        <div className="text-center">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Reset Password
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Enter your email to receive reset instructions
+          </p>
+        </div>
+        
+        <form onSubmit={handleResetPassword} className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium">Email</label>
             <Input
-              id="email"
               type="email"
-              placeholder="Enter your email"
+              placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
-          <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-medium">Password</label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Loading...' : mode === 'login' ? 'Login' : 'Register'}
+          
+          <Button type="submit" className="w-full">
+            Send Reset Instructions
+          </Button>
+          
+          <Button
+            type="button"
+            variant="ghost"
+            className="w-full"
+            onClick={() => setIsResetMode(false)}
+          >
+            Back to Login
           </Button>
         </form>
-      </CardContent>
-    </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6 w-full max-w-sm mx-auto">
+      <div className="text-center">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Welcome to Freelance Hub
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Sign in to your account or create a new one
+        </p>
+      </div>
+
+      <Auth
+        supabaseClient={supabase}
+        appearance={{ theme: ThemeSupa }}
+        theme="light"
+        providers={[]}
+      />
+
+      <Button
+        type="button"
+        variant="ghost"
+        className="w-full"
+        onClick={() => setIsResetMode(true)}
+      >
+        Forgot Password?
+      </Button>
+    </div>
   );
 }
