@@ -132,6 +132,16 @@ export default function Index() {
     // Continue with creating new invoice
   };
 
+  const handleFormSuccess = () => {
+    fetchData();
+    // Keep the current tab active after refresh
+    const currentTab = document.querySelector('[data-state="active"]')?.getAttribute('value') || 'overview';
+    const tabTrigger = document.querySelector(`[value="${currentTab}"]`);
+    if (tabTrigger) {
+      (tabTrigger as HTMLElement).click();
+    }
+  };
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -155,7 +165,7 @@ export default function Index() {
                 <DialogHeader>
                   <DialogTitle>Add New Client</DialogTitle>
                 </DialogHeader>
-                <ClientForm onSuccess={fetchData} />
+                <ClientForm onSuccess={handleFormSuccess} />
               </DialogContent>
             </Dialog>
 
@@ -170,7 +180,7 @@ export default function Index() {
                 <DialogHeader>
                   <DialogTitle>Add New Project</DialogTitle>
                 </DialogHeader>
-                <ProjectForm onSuccess={fetchData} />
+                <ProjectForm onSuccess={handleFormSuccess} />
               </DialogContent>
             </Dialog>
 
@@ -185,7 +195,7 @@ export default function Index() {
                 <DialogHeader>
                   <DialogTitle>Generate Invoice</DialogTitle>
                 </DialogHeader>
-                <InvoiceForm onSuccess={fetchData} />
+                <InvoiceForm onSuccess={handleFormSuccess} />
               </DialogContent>
             </Dialog>
           </div>

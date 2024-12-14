@@ -103,6 +103,7 @@ export default function TimeEntriesList() {
               <TableHead>Start Time</TableHead>
               <TableHead>Duration</TableHead>
               <TableHead>Description</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -119,10 +120,14 @@ export default function TimeEntriesList() {
                 </TableCell>
                 <TableCell>{entry.description}</TableCell>
                 <TableCell>
+                  {entry.invoice_id ? "Invoiced" : "Not Invoiced"}
+                </TableCell>
+                <TableCell>
                   <Button
                     variant="destructive"
                     size="sm"
                     onClick={() => setDeleteId(entry.id)}
+                    disabled={entry.invoice_id !== null}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

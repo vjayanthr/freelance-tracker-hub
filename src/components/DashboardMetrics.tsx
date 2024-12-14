@@ -10,6 +10,8 @@ interface MetricsProps {
 }
 
 export default function DashboardMetrics({ financialMetrics }: MetricsProps) {
+  const unpaidInvoiced = financialMetrics.totalInvoiced - financialMetrics.totalPaid;
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <Card>
@@ -40,7 +42,7 @@ export default function DashboardMetrics({ financialMetrics }: MetricsProps) {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
-            ₹{(financialMetrics.totalInvoiced - financialMetrics.totalPaid).toFixed(2)}
+            ₹{unpaidInvoiced.toFixed(2)}
           </div>
         </CardContent>
       </Card>
