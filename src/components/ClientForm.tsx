@@ -46,6 +46,10 @@ export default function ClientForm({ onSuccess, initialData }: ClientFormProps) 
       });
 
       if (onSuccess) onSuccess();
+      
+      // Close the dialog by simulating Esc key press
+      const event = new KeyboardEvent('keydown', { key: 'Escape' });
+      document.dispatchEvent(event);
     } catch (error) {
       console.error("Error saving client:", error);
       toast({

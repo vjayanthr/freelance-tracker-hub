@@ -27,7 +27,7 @@ export default function ProjectForm({ onSuccess, initialData }: ProjectFormProps
     description: initialData?.description || "",
     client_id: initialData?.client_id || "",
     rate: initialData?.rate || 0,
-    pricing_type: initialData?.pricing_type || "hourly",
+    pricing_type: initialData?.pricing_type || "hourly" as const,
     monthly_rate: initialData?.monthly_rate || 0,
     fixed_rate: initialData?.fixed_rate || 0,
   });
@@ -67,6 +67,10 @@ export default function ProjectForm({ onSuccess, initialData }: ProjectFormProps
       });
 
       if (onSuccess) onSuccess();
+      
+      // Close the dialog by simulating Esc key press
+      const event = new KeyboardEvent('keydown', { key: 'Escape' });
+      document.dispatchEvent(event);
     } catch (error) {
       console.error("Error saving project:", error);
       toast({

@@ -20,6 +20,7 @@ export default function InvoiceForm({ onSuccess }: { onSuccess?: () => void }) {
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
   const [selectedEntries, setSelectedEntries] = useState<string[]>([]);
   const [selectedProject, setSelectedProject] = useState<string>("");
+  const [dueDate, setDueDate] = useState<Date>(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -69,7 +70,7 @@ export default function InvoiceForm({ onSuccess }: { onSuccess?: () => void }) {
         (acc, entry) => acc + entry.duration,
         0
       );
-      const totalHours = totalDuration / 3600; // Convert seconds to hours
+      const totalHours = totalDuration / 3600;
 
       const invoiceNumber = `INV-${format(new Date(), "yyyyMMdd")}-${Math.floor(
         Math.random() * 1000
@@ -84,7 +85,7 @@ export default function InvoiceForm({ onSuccess }: { onSuccess?: () => void }) {
           project_id: selectedProject,
           invoice_number: invoiceNumber,
           issue_date: new Date().toISOString(),
-          due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+          due_date: dueDate.toISOString(),
           total_amount: totalHours * (project.rate || 0),
           status: "draft",
         })
@@ -93,7 +94,6 @@ export default function InvoiceForm({ onSuccess }: { onSuccess?: () => void }) {
 
       if (invoiceError || !invoice) throw invoiceError;
 
-      // Update time entries with invoice_id
       const { error: updateError } = await supabase
         .from("time_entries")
         .update({ invoice_id: invoice.id })
@@ -107,6 +107,10 @@ export default function InvoiceForm({ onSuccess }: { onSuccess?: () => void }) {
       });
 
       if (onSuccess) onSuccess();
+      
+      // Close the dialog by simulating Esc key press
+      const event = new KeyboardEvent('keydown', { key: 'Escape' });
+      document.dispatchEvent(event);
     } catch (error) {
       console.error("Error creating invoice:", error);
       toast({
@@ -141,6 +145,20 @@ export default function InvoiceForm({ onSuccess }: { onSuccess?: () => void }) {
             ))}
           </SelectContent>
         </Select>
+      </div>
+
+      <div>
+        <label htmlFor="due_date" className="block text-sm font-medium mb-1">
+          Due Date
+        </label>
+        <Input
+          id="due_date"
+          type="date"
+          value={format(dueDate, "yyyy-MM-dd")}
+          onChange={(e) => setDueDate(new Date(e.target.value))}
+          min={format(new Date(), "yyyy-MM-dd")}
+          required
+        />
       </div>
 
       {selectedProject && timeEntries.length > 0 && (
