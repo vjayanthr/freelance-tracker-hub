@@ -157,6 +157,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "time_entries_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "time_entries_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
