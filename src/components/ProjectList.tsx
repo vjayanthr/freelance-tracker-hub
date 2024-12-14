@@ -65,6 +65,19 @@ export default function ProjectList({ onUpdate }: { onUpdate?: () => void }) {
     if (onUpdate) onUpdate();
   };
 
+  const formatRate = (project: Project) => {
+    switch (project.pricing_type) {
+      case "hourly":
+        return `$${project.rate}/hr`;
+      case "monthly":
+        return `$${project.monthly_rate}/month`;
+      case "fixed":
+        return `$${project.fixed_rate} (fixed)`;
+      default:
+        return "N/A";
+    }
+  };
+
   if (loading) {
     return <div>Loading projects...</div>;
   }
@@ -88,7 +101,7 @@ export default function ProjectList({ onUpdate }: { onUpdate?: () => void }) {
               <TableRow key={project.id}>
                 <TableCell>{project.name}</TableCell>
                 <TableCell>{project.client.name}</TableCell>
-                <TableCell>${project.rate}/hr</TableCell>
+                <TableCell>{formatRate(project)}</TableCell>
                 <TableCell>
                   <Select
                     value={project.status || "active"}

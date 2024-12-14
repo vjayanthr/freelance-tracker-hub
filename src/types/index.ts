@@ -14,6 +14,9 @@ export interface Project {
   description: string;
   client_id: string;
   rate: number;
+  pricing_type: "hourly" | "monthly" | "fixed";
+  monthly_rate?: number;
+  fixed_rate?: number;
   client: Client;
   status?: string;
   created_at?: string;

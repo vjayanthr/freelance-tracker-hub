@@ -27,6 +27,9 @@ export default function ProjectForm({ onSuccess, initialData }: ProjectFormProps
     description: initialData?.description || "",
     client_id: initialData?.client_id || "",
     rate: initialData?.rate || 0,
+    pricing_type: initialData?.pricing_type || "hourly",
+    monthly_rate: initialData?.monthly_rate || 0,
+    fixed_rate: initialData?.fixed_rate || 0,
   });
 
   useEffect(() => {
@@ -117,20 +120,80 @@ export default function ProjectForm({ onSuccess, initialData }: ProjectFormProps
       </div>
 
       <div>
-        <label htmlFor="rate" className="block text-sm font-medium mb-1">
-          Hourly Rate ($)
+        <label htmlFor="pricing_type" className="block text-sm font-medium mb-1">
+          Pricing Type *
         </label>
-        <Input
-          id="rate"
-          type="number"
-          min="0"
-          step="0.01"
-          value={formData.rate}
-          onChange={(e) =>
-            setFormData((prev) => ({ ...prev, rate: parseFloat(e.target.value) }))
+        <Select
+          value={formData.pricing_type}
+          onValueChange={(value) =>
+            setFormData((prev) => ({ ...prev, pricing_type: value }))
           }
-        />
+          required
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="hourly">Hourly Rate</SelectItem>
+            <SelectItem value="monthly">Monthly Rate</SelectItem>
+            <SelectItem value="fixed">Fixed Rate</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
+
+      {formData.pricing_type === "hourly" && (
+        <div>
+          <label htmlFor="rate" className="block text-sm font-medium mb-1">
+            Hourly Rate ($)
+          </label>
+          <Input
+            id="rate"
+            type="number"
+            min="0"
+            step="0.01"
+            value={formData.rate}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, rate: parseFloat(e.target.value) }))
+            }
+          />
+        </div>
+      )}
+
+      {formData.pricing_type === "monthly" && (
+        <div>
+          <label htmlFor="monthly_rate" className="block text-sm font-medium mb-1">
+            Monthly Rate ($)
+          </label>
+          <Input
+            id="monthly_rate"
+            type="number"
+            min="0"
+            step="0.01"
+            value={formData.monthly_rate}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, monthly_rate: parseFloat(e.target.value) }))
+            }
+          />
+        </div>
+      )}
+
+      {formData.pricing_type === "fixed" && (
+        <div>
+          <label htmlFor="fixed_rate" className="block text-sm font-medium mb-1">
+            Fixed Rate ($)
+          </label>
+          <Input
+            id="fixed_rate"
+            type="number"
+            min="0"
+            step="0.01"
+            value={formData.fixed_rate}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, fixed_rate: parseFloat(e.target.value) }))
+            }
+          />
+        </div>
+      )}
 
       <div>
         <label htmlFor="description" className="block text-sm font-medium mb-1">
