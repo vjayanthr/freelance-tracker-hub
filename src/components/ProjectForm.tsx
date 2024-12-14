@@ -129,7 +129,7 @@ export default function ProjectForm({ onSuccess, initialData }: ProjectFormProps
         </label>
         <Select
           value={formData.pricing_type}
-          onValueChange={(value) =>
+          onValueChange={(value: "hourly" | "monthly" | "fixed") =>
             setFormData((prev) => ({ ...prev, pricing_type: value }))
           }
           required
