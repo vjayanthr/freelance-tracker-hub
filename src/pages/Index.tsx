@@ -26,12 +26,6 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useSubscription } from "@/hooks/use-subscription";
 import type { Client, Project } from "@/types";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
 export default function Index() {
   const { toast } = useToast();
@@ -41,12 +35,6 @@ export default function Index() {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [upgradeFeature, setUpgradeFeature] = useState<"clients" | "projects" | "invoices" | "timeEntries" | null>(null);
-  const [financialMetrics, setFinancialMetrics] = useState({
-    totalBilled: 0,
-    totalPaid: 0,
-    totalInvoiced: 0,
-    totalNotInvoiced: 0,
-  });
 
   const fetchData = async () => {
     // Fetch clients
@@ -63,43 +51,6 @@ export default function Index() {
       .order("created_at", { ascending: false })
       .limit(5);
 
-    // Fetch all time entries with their related invoices
-    const { data: allTimeEntries } = await supabase
-      .from("time_entries")
-      .select(`
-        *,
-        project:projects (
-          rate
-        ),
-        invoice:invoices (
-          status
-        )
-      `);
-
-    // Calculate financial metrics
-    if (allTimeEntries) {
-      const metrics = allTimeEntries.reduce(
-        (acc, entry) => {
-          const entryAmount =
-            (entry.duration / 3600) * (entry.project?.rate || 0);
-          
-          if (entry.invoice?.status === "paid") {
-            acc.totalPaid += entryAmount;
-            acc.totalBilled += entryAmount;
-            acc.totalInvoiced += entryAmount;
-          } else if (entry.invoice_id) {
-            acc.totalBilled += entryAmount;
-            acc.totalInvoiced += entryAmount;
-          } else {
-            acc.totalNotInvoiced += entryAmount;
-          }
-          return acc;
-        },
-        { totalBilled: 0, totalPaid: 0, totalInvoiced: 0, totalNotInvoiced: 0 }
-      );
-      setFinancialMetrics(metrics);
-    }
-
     if (clientsData) setClients(clientsData);
     if (projectsData) setProjects(projectsData);
   };
@@ -113,7 +64,6 @@ export default function Index() {
       setUpgradeFeature("clients");
       return;
     }
-    // Continue with creating new client
   };
 
   const handleNewProject = () => {
@@ -121,7 +71,6 @@ export default function Index() {
       setUpgradeFeature("projects");
       return;
     }
-    // Continue with creating new project
   };
 
   const handleNewInvoice = () => {
@@ -129,12 +78,10 @@ export default function Index() {
       setUpgradeFeature("invoices");
       return;
     }
-    // Continue with creating new invoice
   };
 
   const handleFormSuccess = () => {
     fetchData();
-    // Keep the current tab active after refresh
     const currentTab = document.querySelector('[data-state="active"]')?.getAttribute('value') || 'overview';
     const tabTrigger = document.querySelector(`[value="${currentTab}"]`);
     if (tabTrigger) {
@@ -215,7 +162,7 @@ export default function Index() {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            <DashboardMetrics financialMetrics={financialMetrics} />
+            <DashboardMetrics />
             
             {/* Recent Activity */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
