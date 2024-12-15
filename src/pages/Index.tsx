@@ -26,6 +26,12 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useSubscription } from "@/hooks/use-subscription";
 import type { Client, Project } from "@/types";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default function Index() {
   const { toast } = useToast();

@@ -41,7 +41,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
       if (token_hash && type === 'email_confirmation') {
         const { error } = await supabase.auth.verifyOtp({
           token_hash,
-          type: 'email_confirmation',
+          type: 'signup',  // Changed from 'email_confirmation' to 'signup'
         });
         
         if (error) {
