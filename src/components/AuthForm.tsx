@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,10 +12,35 @@ interface AuthFormProps {
 
 export default function AuthForm({ mode }: AuthFormProps) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
+
+  // Handle email confirmation
+  useEffect(() => {
+    const handleEmailConfirmation = async () => {
+      const token_hash = searchParams.get('token_hash');
+      const type = searchParams.get('type');
+      
+      if (token_hash && type === 'email_confirmation') {
+        const { error } = await supabase.auth.verifyOtp({
+          token_hash,
+          type: 'email_confirmation',
+        });
+        
+        if (error) {
+          toast.error('Error confirming email: ' + error.message);
+        } else {
+          toast.success('Email confirmed successfully! You can now sign in.');
+          navigate('/login');
+        }
+      }
+    };
+
+    handleEmailConfirmation();
+  }, [searchParams, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,6 +51,9 @@ export default function AuthForm({ mode }: AuthFormProps) {
         const { error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/register`,
+          },
         });
         if (error) throw error;
         toast.success("Check your email to confirm your account!");
