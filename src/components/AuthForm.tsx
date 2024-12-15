@@ -132,14 +132,14 @@ export default function AuthForm({ mode }: AuthFormProps) {
               required
             />
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Loading...' : mode === 'login' ? 'Login' : 'Register'}
+          <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={loading}>
+            {loading ? 'Loading...' : mode === 'login' ? 'Sign In' : 'Register'}
           </Button>
           {mode === 'login' && (
             <Button
               type="button"
               variant="link"
-              className="w-full"
+              className="w-full text-primary hover:text-primary/90"
               onClick={() => setShowResetPassword(true)}
             >
               Forgot Password?

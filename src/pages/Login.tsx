@@ -1,4 +1,4 @@
-import AuthForm from "@/components/auth/AuthForm";
+import AuthForm from "@/components/AuthForm";
 import { Link } from "react-router-dom";
 
 export default function Login() {

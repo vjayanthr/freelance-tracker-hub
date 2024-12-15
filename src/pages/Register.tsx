@@ -1,4 +1,4 @@
-import AuthForm from "@/components/auth/AuthForm";
+import AuthForm from "@/components/AuthForm";
 import { Link } from "react-router-dom";
 
 export default function Register() {
@@ -7,7 +7,7 @@ export default function Register() {
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
           <h1 className="text-3xl font-bold">Create an account</h1>
-          <p className="text-muted-foreground mt-2">Start tracking your freelance work</p>
+          <p className="text-muted-foreground mt-2">Get started with your account</p>
         </div>
         <AuthForm mode="register" />
         <p className="text-center text-sm">
