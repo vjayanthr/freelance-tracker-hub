@@ -142,8 +142,12 @@ export default function Index() {
     }
   };
 
+  const handleProjectSelect = (project: Project) => {
+    setSelectedProject(project);
+  };
+
   return (
-    <Layout>
+    <Layout onProjectSelect={handleProjectSelect}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

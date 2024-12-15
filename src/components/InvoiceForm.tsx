@@ -12,6 +12,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
 import { supabase } from "@/lib/supabase";
+import { InvoicePricing } from "./InvoicePricing";
 import type { Project, TimeEntry } from "@/types";
 
 export default function InvoiceForm({ onSuccess }: { onSuccess?: () => void }) {
@@ -21,7 +22,10 @@ export default function InvoiceForm({ onSuccess }: { onSuccess?: () => void }) {
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
   const [selectedEntries, setSelectedEntries] = useState<string[]>([]);
   const [selectedProject, setSelectedProject] = useState<string>("");
-  const [dueDate, setDueDate] = useState<Date>(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
+  const [customAmount, setCustomAmount] = useState<number | null>(null);
+  const [dueDate, setDueDate] = useState<Date>(
+    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+  );
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -67,11 +71,17 @@ export default function InvoiceForm({ onSuccess }: { onSuccess?: () => void }) {
         selectedEntries.includes(entry.id)
       );
 
-      const totalDuration = selectedTimeEntries.reduce(
-        (acc, entry) => acc + entry.duration,
-        0
-      );
-      const totalHours = totalDuration / 3600;
+      let totalAmount = 0;
+      if (project.pricing_type === "hourly") {
+        const totalDuration = selectedTimeEntries.reduce(
+          (acc, entry) => acc + entry.duration,
+          0
+        );
+        const totalHours = totalDuration / 3600;
+        totalAmount = totalHours * (project.rate || 0);
+      } else {
+        totalAmount = customAmount || 0;
+      }
 
       const invoiceNumber = `INV-${format(new Date(), "yyyyMMdd")}-${Math.floor(
         Math.random() * 1000
@@ -87,7 +97,7 @@ export default function InvoiceForm({ onSuccess }: { onSuccess?: () => void }) {
           invoice_number: invoiceNumber,
           issue_date: new Date().toISOString(),
           due_date: dueDate.toISOString(),
-          total_amount: totalHours * (project.rate || 0),
+          total_amount: totalAmount,
           status: "draft",
         })
         .select()
@@ -95,12 +105,14 @@ export default function InvoiceForm({ onSuccess }: { onSuccess?: () => void }) {
 
       if (invoiceError || !invoice) throw invoiceError;
 
-      const { error: updateError } = await supabase
-        .from("time_entries")
-        .update({ invoice_id: invoice.id })
-        .in("id", selectedEntries);
+      if (project.pricing_type === "hourly") {
+        const { error: updateError } = await supabase
+          .from("time_entries")
+          .update({ invoice_id: invoice.id })
+          .in("id", selectedEntries);
 
-      if (updateError) throw updateError;
+        if (updateError) throw updateError;
+      }
 
       toast({
         title: "Invoice created successfully",
@@ -109,7 +121,6 @@ export default function InvoiceForm({ onSuccess }: { onSuccess?: () => void }) {
 
       if (onSuccess) onSuccess();
       
-      // Close the dialog by simulating Esc key press
       const event = new KeyboardEvent('keydown', { key: 'Escape' });
       document.dispatchEvent(event);
     } catch (error) {
@@ -123,6 +134,8 @@ export default function InvoiceForm({ onSuccess }: { onSuccess?: () => void }) {
       setLoading(false);
     }
   };
+
+  const currentProject = projects.find(p => p.id === selectedProject);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -162,7 +175,14 @@ export default function InvoiceForm({ onSuccess }: { onSuccess?: () => void }) {
         />
       </div>
 
-      {selectedProject && timeEntries.length > 0 && (
+      {currentProject && (
+        <InvoicePricing
+          project={currentProject}
+          onPriceChange={(amount) => setCustomAmount(amount)}
+        />
+      )}
+
+      {currentProject?.pricing_type === "hourly" && timeEntries.length > 0 && (
         <div className="space-y-4">
           <h3 className="font-medium">Select Time Entries to Invoice</h3>
           <div className="space-y-2">

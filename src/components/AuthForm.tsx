@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { FcGoogle } from "react-icons/fc";
 
 interface AuthFormProps {
   mode: 'login' | 'register';
@@ -17,6 +18,19 @@ export default function AuthForm({ mode }: AuthFormProps) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
+
+  const handleGoogleSignIn = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/${mode}`,
+      },
+    });
+
+    if (error) {
+      toast.error(error.message);
+    }
+  };
 
   // Handle email confirmation
   useEffect(() => {
@@ -137,43 +151,66 @@ export default function AuthForm({ mode }: AuthFormProps) {
         <CardTitle>{mode === 'login' ? 'Login' : 'Create an account'}</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium">Email</label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-medium">Password</label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={loading}>
-            {loading ? 'Loading...' : mode === 'login' ? 'Sign In' : 'Register'}
+        <div className="space-y-4">
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={handleGoogleSignIn}
+          >
+            <FcGoogle className="mr-2 h-4 w-4" />
+            Continue with Google
           </Button>
-          {mode === 'login' && (
-            <Button
-              type="button"
-              variant="link"
-              className="w-full text-primary hover:text-primary/90"
-              onClick={() => setShowResetPassword(true)}
-            >
-              Forgot Password?
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Or continue with
+              </span>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="email" className="text-sm font-medium">Email</label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="password" className="text-sm font-medium">Password</label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={loading}>
+              {loading ? 'Loading...' : mode === 'login' ? 'Sign In' : 'Register'}
             </Button>
-          )}
-        </form>
+            {mode === 'login' && (
+              <Button
+                type="button"
+                variant="link"
+                className="w-full text-primary hover:text-primary/90"
+                onClick={() => setShowResetPassword(true)}
+              >
+                Forgot Password?
+              </Button>
+            )}
+          </form>
+        </div>
       </CardContent>
     </Card>
   );
